@@ -34,7 +34,7 @@ CC ?= gcc
 
 C_FLAGS := -Wall -Wextra -g -rdynamic
 
-DEP_FLAGS := -MMD -MP
+DEP_FLAGS := -MMD -MP -lpthread
 
 H_INC := $(foreach d, $(I_DIR), -I$d)
 L_INC := $(foreach l, $(LIB), -l$l)
