@@ -24,15 +24,15 @@ int ring_buffer_pop(RingBuffer* ring_buffer, char* new_element) {
     return 1;
 }
 
-int ring_buffer_push(RingBuffer* ring_buffer, const char* return_buffer){
+int ring_buffer_push(RingBuffer* ring_buffer, const char* element){
     if (ring_buffer_is_full(ring_buffer)) {
         return -1;
     }
     if (!ring_buffer->current_queue_length) {
-        memcpy(ring_buffer_get_element_pointer(ring_buffer, ring_buffer->current_index), return_buffer, ring_buffer->size_of_element);
+        memcpy(ring_buffer_get_element_pointer(ring_buffer, ring_buffer->current_index), element, ring_buffer->size_of_element);
     } else {
         size_t nextFree = (ring_buffer->current_index + ring_buffer->current_queue_length) % ring_buffer->max_queue_length;
-        memcpy(ring_buffer_get_element_pointer(ring_buffer, nextFree), return_buffer, ring_buffer->size_of_element);
+        memcpy(ring_buffer_get_element_pointer(ring_buffer, nextFree), element, ring_buffer->size_of_element);
     }
     ring_buffer->current_queue_length++;
     return 0;

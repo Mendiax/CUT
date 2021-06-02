@@ -36,11 +36,10 @@ int ring_buffer_pop(RingBuffer* ring_buffer, char* new_element);
 
 /*
  * copy from pointer memoery of queue elementSize to queue
- * @param queue pointer to queue
- * @param ptrForReturnedElement pointer to element which will be copied to queue
- * @return 0 if failed
+ * return_buffer pointer to element which will be copied to queue
+ * return 0 if failed
  */
-int ring_buffer_push(RingBuffer* ring_buffer, const char* return_buffer);
+int ring_buffer_push(RingBuffer* ring_buffer, const char* element);
 
 /*
  * Works like ring_buffer_push but insted of copy returns pointer to element
@@ -51,15 +50,13 @@ char* ring_buffer_push_pointer(RingBuffer* ring_buffer);
 
 /*
  * initializing queue with elements of given size and given length
- * @param ring_buffer pointer to queue
- * @param size_of_element size of elements in bytes
- * @param buffer_length max queue length
+ * size_of_element - size of elements in bytes
+ * buffer_length - max buffer length
  */
 RingBuffer* ring_buffer_create(size_t size_of_element, size_t buffer_length);
 
 /*
  * freeing memory of queue
- * @param ring_buffer pointer to queue
  */
 void ring_buffer_destroy(RingBuffer* ring_buffer);
 

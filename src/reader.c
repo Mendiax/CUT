@@ -73,7 +73,6 @@ void* reader_thread_function(void* args) {
         pthread_mutex_unlock(&thread->reader_data->mutex);
         usleep(10000);
     }
-    printf("exit %d\n",returnStatus);
     pthread_exit((void*) returnStatus);
 
 }

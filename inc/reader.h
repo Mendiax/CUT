@@ -48,18 +48,15 @@ void reader_data_destroy(ReaderData* reader_data);
  */
 int reader_data_read_from_file(ReaderData* reader_data, char* buffer);
 
-
 /*
  * reader thread function
  */
 void* reader_thread_function(void* reader);
 
-
 /*
  * constructor
  */
 ReaderThread* reader_thread_create(unsigned int thread_count, size_t buffer_length);
-
 
 /*
  * destructor
@@ -77,11 +74,10 @@ void reader_thread_start(ReaderThread* reader);
 int reader_thread_join(ReaderThread* reader);
 
 /*
- *
- * @param atData pointer to thread data structure
- * @return thread status 0 -> thread returned normally, -1 -> thread had an error
+ *  stops reader thread
+ *  thread status 0 -> thread returned normally, -1 -> thread had an error
  */
 int reader_thread_stop(ReaderThread* reader);
 
 
-#endif //CUT_STATANALYZER_H
+#endif //CUT_ANALYZER_H
