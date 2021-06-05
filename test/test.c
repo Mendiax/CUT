@@ -2,6 +2,7 @@
 #include "test_ringbuffer.h"
 #include "test_reader.h"
 #include "test_analyzer.h"
+#include "test_printer.h"
 
 int main(void) {
     TEST_SUITE_INIT("RINGBUFFER TEST");
@@ -18,6 +19,11 @@ int main(void) {
 
     TEST_SUITE_INIT("ANALYZER TEST");
     TEST_CASE_RUN(analyzer_test1());
+    TEST_SUITE_SUMMARY();
+    result += TEST_SUITE_GET_RESULT();
+
+    TEST_SUITE_INIT("PRINTER TEST");
+    TEST_CASE_RUN(printer_test1());
     TEST_SUITE_SUMMARY();
     result += TEST_SUITE_GET_RESULT();
 
