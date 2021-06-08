@@ -73,6 +73,8 @@ void* analyzer_thread_function(void* args) {
     AnalyzerThread* thread = (AnalyzerThread*) args;
     char reader_buffer[thread->reader_data->buffer->size_of_element];
 
+    time_t lastUpdate = 0;
+
     while (1) {
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_empty(thread->reader_data->buffer)) {
@@ -89,11 +91,17 @@ void* analyzer_thread_function(void* args) {
         pthread_cond_signal(&thread->reader_data->can_update_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
 
+        if (difftime(time(NULL), lastUpdate) < 1.0) {//update after 1 second passed
+            continue;
+        }
+        lastUpdate = time(NULL);
+
         //update analyzer buffer
         pthread_mutex_lock(&thread->analyzer_data->mutex);
         if (ring_buffer_is_full(thread->analyzer_data->buffer)) {
             pthread_cond_wait(&thread->analyzer_data->can_update_buffer, &thread->analyzer_data->mutex);
         }
+
         if (thread->should_end) {
             pthread_mutex_unlock(&thread->analyzer_data->mutex);
             pthread_exit(0);
@@ -105,8 +113,12 @@ void* analyzer_thread_function(void* args) {
             pthread_exit((void*) -1);
         }
         for (unsigned int i = 0; i < thread->analyzer_data->thread_count; i++) {
+            if (memcmp(&thread->analyzer_data->raw_cpu_array[i], &thread->analyzer_data->raw_cpu_array2[i], sizeof(RawCpuData)) == 0) { //check id cpu did some work
+                continue;
+            }
             cpu_usage_buffer[i] = analyzer_get_cpu_usage(thread->analyzer_data->raw_cpu_array[i], thread->analyzer_data->raw_cpu_array2[i]);
         }
+
         RawCpuData* tmp = thread->analyzer_data->raw_cpu_array;
         thread->analyzer_data->raw_cpu_array = thread->analyzer_data->raw_cpu_array2;
         thread->analyzer_data->raw_cpu_array2 = tmp;
