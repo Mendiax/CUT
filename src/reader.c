@@ -54,7 +54,7 @@ void reader_data_destroy(ReaderData* reader_data) {
 
 void* reader_thread_function(void* args) {
     ReaderThread* thread = (ReaderThread*) args;
-    int returnStatus = 0;
+    int return_status = 0;
     while (!thread->should_end) {
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_full(thread->reader_data->buffer)) {
@@ -64,7 +64,7 @@ void* reader_thread_function(void* args) {
         if (!reader_data_read_from_file(thread->reader_data, next_free_space)) {
             pthread_mutex_unlock(&thread->reader_data->mutex);
             if (!thread->should_end) {
-                returnStatus = 1;
+                return_status = 1;
             }
             break;
         }
@@ -73,7 +73,7 @@ void* reader_thread_function(void* args) {
         pthread_mutex_unlock(&thread->reader_data->mutex);
         usleep(10000);
     }
-    pthread_exit((void*) returnStatus);
+    pthread_exit((void*) return_status);
 
 }
 

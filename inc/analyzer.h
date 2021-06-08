@@ -25,7 +25,7 @@ typedef struct AnalyzerData
     RawCpuData* raw_cpu_array2;
     RawCpuData* raw_cpu_array;
     RingBuffer* buffer;
-    unsigned short thread_count;
+    unsigned int thread_count;
     char pad[6];
 } AnalyzerData;
 
