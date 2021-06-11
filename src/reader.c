@@ -71,6 +71,7 @@ void* reader_thread_function(void* args) {
 
         pthread_cond_signal(&thread->reader_data->can_read_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
+        thread->last_update = time(NULL);
         usleep(10000);
     }
     pthread_exit((void*) return_status);

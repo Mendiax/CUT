@@ -12,10 +12,10 @@
  */
 typedef struct ReaderData
 {
-    RingBuffer* buffer;
-    pthread_mutex_t mutex;
     pthread_cond_t can_update_buffer;
     pthread_cond_t can_read_buffer;
+    pthread_mutex_t mutex;
+    RingBuffer* buffer;
     size_t size;
     unsigned int number_of_threads;
     char pad[4];
@@ -26,8 +26,9 @@ typedef struct ReaderData
  */
 typedef struct ReaderThread
 {
-    ReaderData* reader_data;
     pthread_t thread;
+    ReaderData* reader_data;
+    _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
     char pad[4];
 } ReaderThread;

@@ -37,6 +37,7 @@ typedef struct AnalyzerThread
     pthread_t thread;
     ReaderData* reader_data;
     AnalyzerData* analyzer_data;
+    _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
     char pad[4];
 } AnalyzerThread;

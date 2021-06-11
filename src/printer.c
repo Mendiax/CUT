@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <stdio.h>
 
-void printCpuUsage(size_t n, float cpu_usage[n]){
+void print_cpu_usage(size_t n, float * cpu_usage){
     printf("\x1b[2A");
     printf("\x1b[0J");
     printf("CPU  : ");
@@ -40,7 +40,8 @@ void* printer_thread_function(void* args) {
         pthread_cond_signal(&thread->analyzer_data->can_update_buffer);
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
 
-       printCpuUsage(thread->analyzer_data->thread_count, readerBuffer);
+        print_cpu_usage(thread->analyzer_data->thread_count, readerBuffer);
+        thread->last_update = time(NULL);
     }
 }
 

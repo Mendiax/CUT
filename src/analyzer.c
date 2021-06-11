@@ -72,7 +72,7 @@ void analyzer_data_destroy(AnalyzerData* analyzer_data) {
 void* analyzer_thread_function(void* args) {
     AnalyzerThread* thread = (AnalyzerThread*) args;
     char reader_buffer[thread->reader_data->buffer->size_of_element];
-
+    thread->last_update = time(NULL);
     time_t lastUpdate = 0;
 
     while (1) {
@@ -94,7 +94,7 @@ void* analyzer_thread_function(void* args) {
         if (difftime(time(NULL), lastUpdate) < 1.0) {//update after 1 second passed
             continue;
         }
-        lastUpdate = time(NULL);
+        thread->last_update = lastUpdate = time(NULL);
 
         //update analyzer buffer
         pthread_mutex_lock(&thread->analyzer_data->mutex);
@@ -125,6 +125,7 @@ void* analyzer_thread_function(void* args) {
 
         pthread_cond_signal(&thread->analyzer_data->can_read_buffer);
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
+        thread->last_update = time(NULL);
     }
 }
 

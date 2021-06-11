@@ -12,7 +12,9 @@ typedef struct PrinterThread
 {
     pthread_t thread;
     AnalyzerData* analyzer_data;
+    _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
+    char pad[4];
 } PrinterThread;
 
 /*
@@ -20,7 +22,7 @@ typedef struct PrinterThread
  * n - size of array,
  * cpuUsage - array with cpu usage
  */
-void printCpuUsage(size_t n, float cpu_usage[n]);
+void print_cpu_usage(size_t n, float * cpu_usage);
 
 /*
  * thread function
