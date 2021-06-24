@@ -15,10 +15,10 @@ static void watchdog_test_analyzer();
 
 static void watchdog_test_reader() {
     unsigned int t = sysconf(_SC_NPROCESSORS_ONLN);
-    ReaderThread* reader = reader_thread_create(t, 10);
-    AnalyzerThread* analyzer = analyzer_thread_create(reader->reader_data, t, 10);
-    PrinterThread* printer = printer_thread_create(analyzer->analyzer_data);
-    WatchdogThread* watchdog = watchdog_thread_create(2.0, 3, &reader->last_update, &analyzer->last_update, &printer->last_update);
+    ReaderThread* reader = reader_thread_create((void*) 0, t, 10);
+    AnalyzerThread* analyzer = analyzer_thread_create((void*) 0, reader->reader_data, t, 10);
+    PrinterThread* printer = printer_thread_create((void*) 0, analyzer->analyzer_data);
+    WatchdogThread* watchdog = watchdog_thread_create((void*) 0, 2.0, 3, &reader->last_update, &analyzer->last_update, &printer->last_update);
 
     reader_thread_start(reader);
     analyzer_thread_start(analyzer);
@@ -49,11 +49,11 @@ static void watchdog_test_reader() {
 
 
 static void watchdog_test_analyzer() {
-    unsigned int t = sysconf(_SC_NPROCESSORS_ONLN);
-    ReaderThread* reader = reader_thread_create(t, 10);
-    AnalyzerThread* analyzer = analyzer_thread_create(reader->reader_data, t, 10);
-    PrinterThread* printer = printer_thread_create(analyzer->analyzer_data);
-    WatchdogThread* watchdog = watchdog_thread_create(2.0, 3, &reader->last_update, &analyzer->last_update, &printer->last_update);
+    unsigned int t = (unsigned) sysconf(_SC_NPROCESSORS_ONLN);
+    ReaderThread* reader = reader_thread_create((void*) 0, t, 10);
+    AnalyzerThread* analyzer = analyzer_thread_create((void*) 0, reader->reader_data, t, 10);
+    PrinterThread* printer = printer_thread_create((void*) 0, analyzer->analyzer_data);
+    WatchdogThread* watchdog = watchdog_thread_create((void*) 0, 2.0, 3, &reader->last_update, &analyzer->last_update, &printer->last_update);
 
     reader_thread_start(reader);
     analyzer_thread_start(analyzer);

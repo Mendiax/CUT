@@ -22,6 +22,7 @@ void print_cpu_usage(size_t n, float * cpu_usage){
 void* printer_thread_function(void* args) {
     PrinterThread* thread = (PrinterThread*) args;
     float readerBuffer[thread->analyzer_data->buffer->size_of_element];
+    thread->last_update = time(NULL);
     printf("CPU avg usage (1s)\n\n\n");
     while (1) {
         pthread_mutex_lock(&thread->analyzer_data->mutex);
@@ -39,14 +40,15 @@ void* printer_thread_function(void* args) {
 
         pthread_cond_signal(&thread->analyzer_data->can_update_buffer);
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
-
+        logger_thread_print(thread->logger,"[printer] printing\n");
         print_cpu_usage(thread->analyzer_data->thread_count, readerBuffer);
         thread->last_update = time(NULL);
     }
 }
 
-PrinterThread* printer_thread_create(AnalyzerData* analyzer_data) {
+PrinterThread* printer_thread_create(LoggerThread* logger,AnalyzerData* analyzer_data) {
     PrinterThread* printer = malloc(sizeof(PrinterThread));
+    printer->logger = logger;
     printer->should_end = 0;
     printer->analyzer_data = analyzer_data;
     return printer;

@@ -4,17 +4,20 @@
 #include <pthread.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <logger.h>
 
 typedef struct WatchdogThread
 {
     double timeout_time;
-    unsigned short number_of_threads;
-    volatile sig_atomic_t should_end;
     pthread_t thread;
+    LoggerThread* logger;
+    volatile sig_atomic_t should_end;
+    unsigned short number_of_threads;
+    char pad[2];
     volatile _Atomic time_t* threads_last_update[];
 } WatchdogThread;
 
-WatchdogThread* watchdog_thread_create(double, size_t thread_count, ...);
+WatchdogThread* watchdog_thread_create(LoggerThread* logger, double timeout, size_t thread_count, ...);
 
 void watchdog_thread_destroy(WatchdogThread* watchdog);
 

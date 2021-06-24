@@ -55,7 +55,9 @@ void reader_data_destroy(ReaderData* reader_data) {
 void* reader_thread_function(void* args) {
     ReaderThread* thread = (ReaderThread*) args;
     int return_status = 0;
+    thread->last_update = time(NULL);
     while (!thread->should_end) {
+        logger_thread_print(thread->logger,"[reader] updating reader buffer");
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_full(thread->reader_data->buffer)) {
             pthread_cond_wait(&thread->reader_data->can_update_buffer, &thread->reader_data->mutex);
@@ -71,15 +73,18 @@ void* reader_thread_function(void* args) {
 
         pthread_cond_signal(&thread->reader_data->can_read_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
+        logger_thread_print(thread->logger,"[reader] updated reader buffer");
         thread->last_update = time(NULL);
         usleep(10000);
     }
+    logger_thread_print(thread->logger,"[reader] exited with %d",return_status);
     pthread_exit((void*) return_status);
 
 }
 
-ReaderThread* reader_thread_create(unsigned int thread_count, size_t buffer_length) {
+ReaderThread* reader_thread_create(LoggerThread* logger,unsigned int thread_count, size_t buffer_length) {
     ReaderThread* reader_data = malloc(sizeof(ReaderThread));
+    reader_data->logger = logger;
     reader_data->should_end = 0;
     reader_data->reader_data = reader_data_create(thread_count, buffer_length);
     return reader_data;

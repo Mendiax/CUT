@@ -74,7 +74,6 @@ void* analyzer_thread_function(void* args) {
     char reader_buffer[thread->reader_data->buffer->size_of_element];
     thread->last_update = time(NULL);
     time_t lastUpdate = 0;
-
     while (1) {
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_empty(thread->reader_data->buffer)) {
@@ -90,11 +89,16 @@ void* analyzer_thread_function(void* args) {
 
         pthread_cond_signal(&thread->reader_data->can_update_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
+        logger_thread_print(thread->logger,"[analyzer] read reader buffer");
 
+        thread->last_update = lastUpdate;
         if (difftime(time(NULL), lastUpdate) < 1.0) {//update after 1 second passed
             continue;
         }
-        thread->last_update = lastUpdate = time(NULL);
+
+        //logger_thread_print(thread->logger,"updating buffer");
+        lastUpdate = time(NULL);
+        thread->last_update = lastUpdate;
 
         //update analyzer buffer
         pthread_mutex_lock(&thread->analyzer_data->mutex);
@@ -103,6 +107,7 @@ void* analyzer_thread_function(void* args) {
         }
 
         if (thread->should_end) {
+            logger_thread_print(thread->logger,"[analyzer] exiting\n");
             pthread_mutex_unlock(&thread->analyzer_data->mutex);
             pthread_exit(0);
         }
@@ -122,15 +127,17 @@ void* analyzer_thread_function(void* args) {
         RawCpuData* tmp = thread->analyzer_data->raw_cpu_array;
         thread->analyzer_data->raw_cpu_array = thread->analyzer_data->raw_cpu_array2;
         thread->analyzer_data->raw_cpu_array2 = tmp;
-
         pthread_cond_signal(&thread->analyzer_data->can_read_buffer);
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
         thread->last_update = time(NULL);
+        logger_thread_print(thread->logger,"[analyzer] buffer updated");
+
     }
 }
 
-AnalyzerThread* analyzer_thread_create(ReaderData* reader_data, unsigned short thread_count, size_t buffer_length) {
+AnalyzerThread* analyzer_thread_create(LoggerThread* logger,ReaderData* reader_data, unsigned short thread_count, size_t buffer_length) {
     AnalyzerThread* analyzer_thread = malloc(sizeof(AnalyzerThread));
+    analyzer_thread->logger = logger;
     analyzer_thread->should_end = 0;
     analyzer_thread->analyzer_data = analyzer_data_create(thread_count, buffer_length);
     analyzer_thread->reader_data = reader_data;

@@ -4,6 +4,7 @@
 #include <analyzer.h>
 #include <signal.h>
 #include <time.h>
+#include <logger.h>
 
 /*
  * data for printer
@@ -12,6 +13,7 @@ typedef struct PrinterThread
 {
     pthread_t thread;
     AnalyzerData* analyzer_data;
+    LoggerThread* logger;
     _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
     char pad[4];
@@ -31,7 +33,7 @@ void* printer_thread_function(void*);
 /*
  * allocating all thread data
  */
-PrinterThread* printer_thread_create(AnalyzerData * analyzer_data);
+PrinterThread* printer_thread_create(LoggerThread* logger,AnalyzerData * analyzer_data);
 
 /*
  * deallocating all thread data

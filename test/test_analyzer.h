@@ -10,8 +10,8 @@
 static void analyzer_test1();
 
 static void analyzer_test1() {
-    ReaderThread* reader = reader_thread_create((unsigned int) sysconf(_SC_NPROCESSORS_ONLN), 10);
-    AnalyzerThread* analyzer = analyzer_thread_create(reader->reader_data,(unsigned short) sysconf(_SC_NPROCESSORS_ONLN), 10);
+    ReaderThread* reader = reader_thread_create((void*)0,(unsigned int) sysconf(_SC_NPROCESSORS_ONLN), 10);
+    AnalyzerThread* analyzer = analyzer_thread_create((void*)0,reader->reader_data,(unsigned short) sysconf(_SC_NPROCESSORS_ONLN), 10);
     reader_thread_start(reader);
     analyzer_thread_start(analyzer);
 

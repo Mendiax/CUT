@@ -4,6 +4,7 @@
 #include "test_analyzer.h"
 #include "test_printer.h"
 #include "test_watchdog.h"
+#include "test_logger.h"
 
 int main(void) {
     TEST_SUITE_INIT("RINGBUFFER TEST");
@@ -31,6 +32,11 @@ int main(void) {
     TEST_SUITE_INIT("WATCHDOG TEST");
     TEST_CASE_RUN(watchdog_test_reader());
     TEST_CASE_RUN(watchdog_test_analyzer());
+    TEST_SUITE_SUMMARY();
+    result += TEST_SUITE_GET_RESULT();
+
+    TEST_SUITE_INIT("LOGGER TEST");
+    TEST_CASE_RUN(logger_test1());
     TEST_SUITE_SUMMARY();
     result += TEST_SUITE_GET_RESULT();
 

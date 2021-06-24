@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <reader.h>
 #include <signal.h>
+#include <logger.h>
 
 /*
  * data for calculating cpu usage
@@ -12,7 +13,7 @@
 typedef struct RawCpuData
 {
     unsigned long long int idle, total;
-}RawCpuData;
+} RawCpuData;
 
 /*
  * data for analyzer
@@ -26,7 +27,7 @@ typedef struct AnalyzerData
     RawCpuData* raw_cpu_array;
     RingBuffer* buffer;
     unsigned int thread_count;
-    char pad[6];
+    char pad[4];
 } AnalyzerData;
 
 /*
@@ -37,7 +38,8 @@ typedef struct AnalyzerThread
     pthread_t thread;
     ReaderData* reader_data;
     AnalyzerData* analyzer_data;
-    _Atomic(time_t) last_update;
+    LoggerThread* logger;
+    _Atomic (time_t) last_update;
     volatile sig_atomic_t should_end;
     char pad[4];
 } AnalyzerThread;
@@ -71,7 +73,7 @@ void* analyzer_thread_function(void* args);
 /*
  * constructor
  */
-AnalyzerThread* analyzer_thread_create(ReaderData* reader_data, unsigned short thread_count, size_t buffer_length);
+AnalyzerThread* analyzer_thread_create(LoggerThread* logger, ReaderData* reader_data, unsigned short thread_count, size_t buffer_length);
 
 /*
  * deallocating all thread data

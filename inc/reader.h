@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <ringbuffer.h>
 #include <signal.h>
+#include <logger.h>
 
 #define RAW_DATA_LINE_SIZE (10 * 11 + 10 + 5 + 1) //10 * ull + 10 spaces + 5 for cpuXX + '0\'
 
@@ -28,6 +29,7 @@ typedef struct ReaderThread
 {
     pthread_t thread;
     ReaderData* reader_data;
+    LoggerThread* logger;
     _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
     char pad[4];
@@ -57,7 +59,7 @@ void* reader_thread_function(void* reader);
 /*
  * constructor
  */
-ReaderThread* reader_thread_create(unsigned int thread_count, size_t buffer_length);
+ReaderThread* reader_thread_create(LoggerThread* logger,unsigned int thread_count, size_t buffer_length);
 
 /*
  * destructor

@@ -11,9 +11,9 @@ static void printer_test1();
 
 static void printer_test1() {
     unsigned int t = sysconf(_SC_NPROCESSORS_ONLN);
-    ReaderThread* reader = reader_thread_create(t, 10);
-    AnalyzerThread* analyzer = analyzer_thread_create(reader->reader_data,t, 10);
-    PrinterThread* printer = printer_thread_create(analyzer->analyzer_data);
+    ReaderThread* reader = reader_thread_create((void*)0,t, 10);
+    AnalyzerThread* analyzer = analyzer_thread_create((void*)0,reader->reader_data,t, 10);
+    PrinterThread* printer = printer_thread_create((void*)0,analyzer->analyzer_data);
 
     reader_thread_start(reader);
     analyzer_thread_start(analyzer);
