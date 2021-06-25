@@ -30,11 +30,11 @@ T_EXEC := test.out
 # COMPILATOR SECTION
 
 
-CC ?= gcc
+CC ?= clang
 
-C_FLAGS := -Wall -Wextra -g -rdynamic
+C_FLAGS := -g
 
-DEP_FLAGS := -MMD -MP -lpthread
+DEP_FLAGS := -MMD -MP -pthread
 
 H_INC := $(foreach d, $(I_DIR), -I$d)
 L_INC := $(foreach l, $(LIB), -l$l)
@@ -43,7 +43,7 @@ L_PATH := $(foreach p, $(LIB_PATH), -L$p)
 ifeq ($(CC),clang)
 	C_FLAGS += -Weverything
 else ifneq (, $(filter $(CC), cc gcc))
-	C_FLAGS += -rdynamic
+	C_FLAGS += -rdynamic -Wall -Wextra
 endif
 
 ifeq ("$(origin O)", "command line")
