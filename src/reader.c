@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdatomic.h>
 
 int reader_data_read_from_file(ReaderData* reader_data, char* buffer) {
     if (buffer == NULL) {
@@ -55,7 +56,7 @@ void reader_data_destroy(ReaderData* reader_data) {
 void* reader_thread_function(void* args) {
     ReaderThread* thread = (ReaderThread*) args;
     int return_status = 0;
-    thread->last_update = time(NULL);
+    atomic_store_explicit(&thread->last_update, time(NULL), memory_order_release);
     while (!thread->should_end) {
         logger_thread_print(thread->logger,"[reader] updating reader buffer");
         pthread_mutex_lock(&thread->reader_data->mutex);
@@ -74,7 +75,7 @@ void* reader_thread_function(void* args) {
         pthread_cond_signal(&thread->reader_data->can_read_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
         logger_thread_print(thread->logger,"[reader] updated reader buffer");
-        thread->last_update = time(NULL);
+        atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
         usleep(10000);
     }
     logger_thread_print(thread->logger,"[reader] exited with %d",return_status);

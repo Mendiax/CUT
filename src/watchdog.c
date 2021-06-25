@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdatomic.h>
 
 WatchdogThread* watchdog_thread_create(LoggerThread* logger,double timeout, size_t thread_count, ...) {
     WatchdogThread* newWatchDog = (WatchdogThread*) malloc(sizeof(WatchdogThread) + sizeof(volatile _Atomic time_t*) * thread_count);
@@ -32,7 +33,7 @@ void* watchdog_thread_function(void* args){
         usleep(10000);
         time_t currentTime = time(NULL);
         for(size_t i = 0; i < thread->number_of_threads; i++){
-            if(difftime(currentTime,*(thread->threads_last_update[i])) > thread->timeout_time){
+            if(difftime(currentTime,(atomic_load_explicit(thread->threads_last_update[i], memory_order_seq_cst))) > thread->timeout_time){
                 returnStatus = (int) i + 1;
                 goto RET;
             }

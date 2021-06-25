@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <stdatomic.h>
 
 void print_cpu_usage(size_t n, float * cpu_usage){
     printf("\x1b[2A");
@@ -22,7 +23,7 @@ void print_cpu_usage(size_t n, float * cpu_usage){
 void* printer_thread_function(void* args) {
     PrinterThread* thread = (PrinterThread*) args;
     float readerBuffer[thread->analyzer_data->buffer->size_of_element];
-    thread->last_update = time(NULL);
+    atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
     printf("CPU avg usage (1s)\n\n\n");
     while (1) {
         pthread_mutex_lock(&thread->analyzer_data->mutex);
@@ -42,7 +43,7 @@ void* printer_thread_function(void* args) {
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
         logger_thread_print(thread->logger,"[printer] printing\n");
         print_cpu_usage(thread->analyzer_data->thread_count, readerBuffer);
-        thread->last_update = time(NULL);
+        atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
     }
 }
 

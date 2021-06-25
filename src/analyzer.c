@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <stdatomic.h>
 
 int analyzer_data_unpack(RawCpuData* buffer_array, char* data, unsigned int thread_count) {
     if (data == NULL) {
@@ -72,8 +73,8 @@ void analyzer_data_destroy(AnalyzerData* analyzer_data) {
 void* analyzer_thread_function(void* args) {
     AnalyzerThread* thread = (AnalyzerThread*) args;
     char reader_buffer[thread->reader_data->buffer->size_of_element];
-    thread->last_update = time(NULL);
-    time_t lastUpdate = 0;
+    atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
+    time_t last_update = 0;
     while (1) {
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_empty(thread->reader_data->buffer)) {
@@ -91,14 +92,14 @@ void* analyzer_thread_function(void* args) {
         pthread_mutex_unlock(&thread->reader_data->mutex);
         logger_thread_print(thread->logger,"[analyzer] read reader buffer");
 
-        thread->last_update = lastUpdate;
-        if (difftime(time(NULL), lastUpdate) < 1.0) {//update after 1 second passed
+        atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
+        if (difftime(time(NULL), last_update) < 1.0) {//update after 1 second passed
             continue;
         }
 
         //logger_thread_print(thread->logger,"updating buffer");
-        lastUpdate = time(NULL);
-        thread->last_update = lastUpdate;
+        last_update = time(NULL);
+        atomic_store_explicit(&thread->last_update, last_update, memory_order_seq_cst);
 
         //update analyzer buffer
         pthread_mutex_lock(&thread->analyzer_data->mutex);
@@ -129,7 +130,7 @@ void* analyzer_thread_function(void* args) {
         thread->analyzer_data->raw_cpu_array2 = tmp;
         pthread_cond_signal(&thread->analyzer_data->can_read_buffer);
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
-        thread->last_update = time(NULL);
+        atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
         logger_thread_print(thread->logger,"[analyzer] buffer updated");
 
     }

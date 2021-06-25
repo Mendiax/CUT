@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 
 void logger_thread_print(LoggerThread* logger, const char* format, ...) {
     if(!logger){
@@ -57,7 +58,7 @@ void* logger_thread_function(void* args) {
         pthread_mutex_unlock(&thread->mutex_buffer);
 
         timer = time(NULL);
-        thread->last_update = timer;
+        atomic_store_explicit(&thread->last_update, timer, memory_order_seq_cst);
         local = localtime(&timer);
         fprintf(file,"%02d:%02d:%02d %s\n",local->tm_hour,local->tm_min,local->tm_sec, msg);
     }
@@ -73,7 +74,7 @@ LoggerThread* logger_thread_create(const char* file, size_t msg_max_size, size_t
     pthread_cond_init(&logger->can_update_buffer, NULL);
     pthread_cond_init(&logger->can_read_buffer, NULL);
     logger->max_msg_length = msg_max_size;
-    logger->last_update = 0;
+    atomic_store_explicit(&logger->last_update, 0, memory_order_seq_cst);
     logger->should_end = 0;
 
     strcpy(logger->file_name,file);
