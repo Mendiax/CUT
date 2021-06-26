@@ -10,6 +10,7 @@ int main(void) {
     TEST_SUITE_INIT("RINGBUFFER TEST");
     TEST_CASE_RUN(ringbufferTest_full());
     TEST_CASE_RUN(ringbufferTest_pointer());
+    TEST_CASE_RUN(ringbufferTest_resize());
     TEST_SUITE_SUMMARY();
 
     int result = TEST_SUITE_GET_RESULT();

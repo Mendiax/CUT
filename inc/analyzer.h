@@ -73,7 +73,7 @@ void* analyzer_thread_function(void* args);
 /*
  * constructor
  */
-AnalyzerThread* analyzer_thread_create(LoggerThread* logger, ReaderData* reader_data, unsigned short thread_count, size_t buffer_length);
+AnalyzerThread* analyzer_thread_create(LoggerThread* logger, ReaderData* reader_data, unsigned int thread_count, size_t buffer_length);
 
 /*
  * deallocating all thread data

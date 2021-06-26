@@ -9,12 +9,12 @@
 #include <printer.h>
 #include <watchdog.h>
 
-static void watchdog_test_reader();
+static void watchdog_test_reader(void);
 
-static void watchdog_test_analyzer();
+static void watchdog_test_analyzer(void);
 
-static void watchdog_test_reader() {
-    unsigned int t = sysconf(_SC_NPROCESSORS_ONLN);
+static void watchdog_test_reader(void) {
+    unsigned int t = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
     ReaderThread* reader = reader_thread_create((void*) 0, t, 10);
     AnalyzerThread* analyzer = analyzer_thread_create((void*) 0, reader->reader_data, t, 10);
     PrinterThread* printer = printer_thread_create((void*) 0, analyzer->analyzer_data);
@@ -48,7 +48,7 @@ static void watchdog_test_reader() {
 }
 
 
-static void watchdog_test_analyzer() {
+static void watchdog_test_analyzer(void) {
     unsigned int t = (unsigned) sysconf(_SC_NPROCESSORS_ONLN);
     ReaderThread* reader = reader_thread_create((void*) 0, t, 10);
     AnalyzerThread* analyzer = analyzer_thread_create((void*) 0, reader->reader_data, t, 10);

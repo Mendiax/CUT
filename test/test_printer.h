@@ -7,10 +7,10 @@
 #include <reader.h>
 #include <analyzer.h>
 #include <printer.h>
-static void printer_test1();
+static void printer_test1(void);
 
-static void printer_test1() {
-    unsigned int t = sysconf(_SC_NPROCESSORS_ONLN);
+static void printer_test1(void) {
+    unsigned int t = (unsigned int)sysconf(_SC_NPROCESSORS_ONLN);
     ReaderThread* reader = reader_thread_create((void*)0,t, 10);
     AnalyzerThread* analyzer = analyzer_thread_create((void*)0,reader->reader_data,t, 10);
     PrinterThread* printer = printer_thread_create((void*)0,analyzer->analyzer_data);
