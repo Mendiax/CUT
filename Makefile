@@ -32,7 +32,7 @@ T_EXEC := test.out
 
 CC ?= clang
 
-C_FLAGS := -g -Wno-vla
+C_FLAGS := -g -Wno-vla -Wno-format-nonliteral
 
 DEP_FLAGS := -MMD -MP -pthread
 
