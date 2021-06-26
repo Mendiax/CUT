@@ -12,12 +12,11 @@ typedef struct WatchdogThread
     pthread_t thread;
     LoggerThread* logger;
     volatile sig_atomic_t should_end;
-    unsigned short number_of_threads;
-    char pad[2];
+    unsigned int number_of_threads;
     volatile _Atomic time_t* threads_last_update[];
 } WatchdogThread;
 
-WatchdogThread* watchdog_thread_create(LoggerThread* logger, double timeout, size_t thread_count, ...);
+WatchdogThread* watchdog_thread_create(LoggerThread* logger, double timeout, unsigned int  thread_count, ...);
 
 void watchdog_thread_destroy(WatchdogThread* watchdog);
 

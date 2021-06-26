@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdatomic.h>
 
-WatchdogThread* watchdog_thread_create(LoggerThread* logger,double timeout, size_t thread_count, ...) {
+WatchdogThread* watchdog_thread_create(LoggerThread* logger,double timeout, unsigned int thread_count, ...) {
     WatchdogThread* newWatchDog = (WatchdogThread*) malloc(sizeof(WatchdogThread) + sizeof(volatile _Atomic time_t*) * thread_count);
     va_list args;
     va_start(args, thread_count);
