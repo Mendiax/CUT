@@ -55,10 +55,11 @@ void reader_data_destroy(ReaderData* reader_data) {
 
 void* reader_thread_function(void* args) {
     ReaderThread* thread = (ReaderThread*) args;
-    int return_status = 0;
+    thread->return_status = 0;
     atomic_store_explicit(&thread->last_update, time(NULL), memory_order_release);
+    logger_thread_print(thread->logger,"[reader] starting thread");
     while (!thread->should_end) {
-        logger_thread_print(thread->logger,"[reader] updating reader buffer");
+        logger_thread_print(thread->logger,"[reader] updating buffer");
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_full(thread->reader_data->buffer)) {
             pthread_cond_wait(&thread->reader_data->can_update_buffer, &thread->reader_data->mutex);
@@ -67,19 +68,19 @@ void* reader_thread_function(void* args) {
         if (!reader_data_read_from_file(thread->reader_data, next_free_space)) {
             pthread_mutex_unlock(&thread->reader_data->mutex);
             if (!thread->should_end) {
-                return_status = 1;
+                thread->return_status = 1;
             }
             break;
         }
 
         pthread_cond_signal(&thread->reader_data->can_read_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
-        logger_thread_print(thread->logger,"[reader] updated reader buffer");
+        logger_thread_print(thread->logger,"[reader] buffer updated");
         atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
         usleep(10000);
     }
-    logger_thread_print(thread->logger,"[reader] exited with %d",return_status);
-    pthread_exit((void*) return_status);
+    logger_thread_print(thread->logger,"[reader] exited %d", thread->return_status);
+    pthread_exit(&thread->return_status);
 
 }
 
@@ -104,7 +105,7 @@ void reader_thread_start(ReaderThread* reader) {
 int reader_thread_join(ReaderThread* reader) {
     int* status = 0;
     pthread_join(reader->thread, (void**) &status);
-    return (int) (long long)status;
+    return *status;
 }
 
 int reader_thread_stop(ReaderThread* reader) {

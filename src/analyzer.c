@@ -75,29 +75,32 @@ void* analyzer_thread_function(void* args) {
     char reader_buffer[thread->reader_data->buffer->size_of_element];
     atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
     time_t last_update = 0;
-    while (1) {
+    logger_thread_print(thread->logger,"[analyzer] starting");
+    while (!thread->should_end) {
         pthread_mutex_lock(&thread->reader_data->mutex);
         if (ring_buffer_is_empty(thread->reader_data->buffer)) {
             pthread_cond_wait(&thread->reader_data->can_read_buffer, &thread->reader_data->mutex);
         }
         if (thread->should_end) {
             pthread_mutex_unlock(&thread->reader_data->mutex);
-            pthread_exit(0);
+            thread->return_status = 0;
+            break;
         }
         if (!ring_buffer_pop(thread->reader_data->buffer, reader_buffer)) {
-            pthread_exit((void*) -1);
+            thread->return_status = -1;
+            break;
         }
 
         pthread_cond_signal(&thread->reader_data->can_update_buffer);
         pthread_mutex_unlock(&thread->reader_data->mutex);
-        logger_thread_print(thread->logger,"[analyzer] read reader buffer");
+        logger_thread_print(thread->logger,"[analyzer] read buffer");
 
         atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
         if (difftime(time(NULL), last_update) < 1.0) {//update after 1 second passed
             continue;
         }
 
-        //logger_thread_print(thread->logger,"updating buffer");
+        logger_thread_print(thread->logger,"[analyzer] updating buffer");
         last_update = time(NULL);
         atomic_store_explicit(&thread->last_update, last_update, memory_order_seq_cst);
 
@@ -108,15 +111,15 @@ void* analyzer_thread_function(void* args) {
         }
 
         if (thread->should_end) {
-            logger_thread_print(thread->logger,"[analyzer] exiting\n");
             pthread_mutex_unlock(&thread->analyzer_data->mutex);
-            pthread_exit(0);
+            break;
         }
 
         //calculate new data and put in buffer
-        float* cpu_usage_buffer = (float*) ring_buffer_push_pointer(thread->analyzer_data->buffer);
+        float* cpu_usage_buffer = (void *) ring_buffer_push_pointer(thread->analyzer_data->buffer);
         if (!analyzer_data_unpack(thread->analyzer_data->raw_cpu_array, reader_buffer, thread->analyzer_data->thread_count)) {
-            pthread_exit((void*) -1);
+            thread->return_status = 0;
+            break;
         }
         for (unsigned int i = 0; i < thread->analyzer_data->thread_count; i++) {
             if (memcmp(&thread->analyzer_data->raw_cpu_array[i], &thread->analyzer_data->raw_cpu_array2[i], sizeof(RawCpuData)) == 0) { //check id cpu did some work
@@ -128,12 +131,15 @@ void* analyzer_thread_function(void* args) {
         RawCpuData* tmp = thread->analyzer_data->raw_cpu_array;
         thread->analyzer_data->raw_cpu_array = thread->analyzer_data->raw_cpu_array2;
         thread->analyzer_data->raw_cpu_array2 = tmp;
+
         pthread_cond_signal(&thread->analyzer_data->can_read_buffer);
         pthread_mutex_unlock(&thread->analyzer_data->mutex);
+
         atomic_store_explicit(&thread->last_update, time(NULL), memory_order_seq_cst);
         logger_thread_print(thread->logger,"[analyzer] buffer updated");
-
     }
+    logger_thread_print(thread->logger,"[analyzer] exited %d", thread->return_status);
+    pthread_exit(&thread->return_status);
 }
 
 AnalyzerThread* analyzer_thread_create(LoggerThread* logger,ReaderData* reader_data, unsigned short thread_count, size_t buffer_length) {
@@ -155,18 +161,15 @@ void analyzer_thread_start(AnalyzerThread* analyzer_thread) {
 }
 
 int analyzer_thread_join(AnalyzerThread* analyzer_thread) {
-    void* status = 0;
+    int* status = 0;
     pthread_join(analyzer_thread->thread, (void**) &status);
-
-    return (int) (long long) status;
+    return *status;
 }
 
 int analyzer_thread_stop(AnalyzerThread* analyzer_thread) {
     analyzer_thread->should_end = 1;
     pthread_cond_signal(&analyzer_thread->analyzer_data->can_update_buffer);
     pthread_cond_signal(&analyzer_thread->reader_data->can_read_buffer);
-    void* status = 0;
-    pthread_join(analyzer_thread->thread, (void**) &status);
 
     return analyzer_thread_join(analyzer_thread);
 }

@@ -12,6 +12,8 @@ typedef struct WatchdogThread
     pthread_t thread;
     LoggerThread* logger;
     volatile sig_atomic_t should_end;
+    int return_status;
+    char pad[4];
     unsigned int number_of_threads;
     volatile _Atomic time_t* threads_last_update[];
 } WatchdogThread;

@@ -16,7 +16,7 @@ typedef struct PrinterThread
     LoggerThread* logger;
     _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
-    char pad[4];
+    int return_status;
 } PrinterThread;
 
 /*
@@ -30,6 +30,7 @@ void print_cpu_usage(size_t n, float * cpu_usage);
  * thread function
  */
 void* printer_thread_function(void*);
+
 /*
  * allocating all thread data
  */
@@ -44,6 +45,11 @@ void printer_thread_destroy(PrinterThread* printer_thread);
  * starts thread
  */
 void printer_thread_start(PrinterThread* printer_thread);
+
+/*
+ * waits for thread
+ */
+int printer_thread_join(PrinterThread* printer_thread);
 
 /*
  * return thread status 0 -> thread returned normally, -1 -> thread had an error

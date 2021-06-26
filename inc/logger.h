@@ -15,7 +15,7 @@ typedef struct LoggerThread{
     pthread_t thread;
     _Atomic(time_t) last_update;
     volatile sig_atomic_t should_end;
-    char pad[4];
+    int return_status;
     char file_name[];
 }LoggerThread;
 

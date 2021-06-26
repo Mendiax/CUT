@@ -27,7 +27,7 @@ void logger_thread_print(LoggerThread* logger, const char* format, ...) {
 
 void* logger_thread_function(void* args) {
     LoggerThread* thread = (LoggerThread*) args;
-    int return_status = 0;
+    thread->return_status = 0;
     char msg[thread->buffer->size_of_element];
     struct tm* local;
     time_t timer;
@@ -36,8 +36,8 @@ void* logger_thread_function(void* args) {
     FILE* file = fopen(thread->file_name,"w");
     if(!file){
         perror("Cannot open a file!\n");
-        return_status = 1;
-        pthread_exit((void*) return_status);
+        thread->return_status = 1;
+        pthread_exit(&thread->return_status);
     }
     while (!thread->should_end || last_length) {
         pthread_mutex_lock(&thread->mutex_buffer);
@@ -48,7 +48,7 @@ void* logger_thread_function(void* args) {
         if (!ring_buffer_pop(thread->buffer, msg)) {
             pthread_mutex_unlock(&thread->mutex_buffer);
             if (!thread->should_end) {
-                return_status = 1;
+                thread->return_status = 1;
             }
             break;
         }
@@ -60,25 +60,23 @@ void* logger_thread_function(void* args) {
         timer = time(NULL);
         atomic_store_explicit(&thread->last_update, timer, memory_order_seq_cst);
         local = localtime(&timer);
+        msg[thread->buffer->size_of_element - 1] = 0;
         fprintf(file,"%02d:%02d:%02d %s\n",local->tm_hour,local->tm_min,local->tm_sec, msg);
     }
     fclose(file);
-    pthread_exit((void*) return_status);
+    pthread_exit( &thread->return_status);
 }
 
 LoggerThread* logger_thread_create(const char* file, size_t msg_max_size, size_t buffer_length){
     LoggerThread* logger = malloc(sizeof (LoggerThread) + strlen(file) + 1);
     logger->buffer = ring_buffer_create(sizeof(char) * msg_max_size, buffer_length);
-
     pthread_mutex_init(&logger->mutex_buffer, NULL);
     pthread_cond_init(&logger->can_update_buffer, NULL);
     pthread_cond_init(&logger->can_read_buffer, NULL);
     logger->max_msg_length = msg_max_size;
     atomic_store_explicit(&logger->last_update, 0, memory_order_seq_cst);
     logger->should_end = 0;
-
     strcpy(logger->file_name,file);
-
 
     return logger;
 }
@@ -103,7 +101,7 @@ void logger_thread_start(LoggerThread* logger){
 int logger_thread_join(LoggerThread* logger){
     int* status = 0;
     pthread_join(logger->thread, (void **) &status);
-    return (int) (long long) status;
+    return *status;
 }
 
 int logger_thread_stop(LoggerThread* logger){

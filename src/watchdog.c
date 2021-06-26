@@ -6,19 +6,18 @@
 #include <stdatomic.h>
 
 WatchdogThread* watchdog_thread_create(LoggerThread* logger,double timeout, unsigned int thread_count, ...) {
-    WatchdogThread* newWatchDog = (WatchdogThread*) malloc(sizeof(WatchdogThread) + sizeof(volatile _Atomic time_t*) * thread_count);
+    WatchdogThread* new_watchdog = (WatchdogThread*) malloc(sizeof(WatchdogThread) + sizeof(volatile _Atomic time_t*) * thread_count);
     va_list args;
     va_start(args, thread_count);
-    newWatchDog->logger = logger;
-    newWatchDog->timeout_time = timeout;
-    newWatchDog->should_end = 0;
-    newWatchDog->number_of_threads = thread_count;
+    new_watchdog->logger = logger;
+    new_watchdog->timeout_time = timeout;
+    new_watchdog->should_end = 0;
+    new_watchdog->number_of_threads = thread_count;
     for (size_t i = 0; i < thread_count; i++) {
-        newWatchDog->threads_last_update[i] = va_arg(args,
-        volatile _Atomic time_t*);
+        new_watchdog->threads_last_update[i] = va_arg(args,volatile _Atomic time_t*);
     }
     va_end(args);
-    return newWatchDog;
+    return new_watchdog;
 }
 
 void watchdog_thread_destroy(WatchdogThread* watchdog){
@@ -27,21 +26,23 @@ void watchdog_thread_destroy(WatchdogThread* watchdog){
 
 void* watchdog_thread_function(void* args){
     WatchdogThread* thread = (WatchdogThread*)args;
-    sleep(1);
-    long long returnStatus = 0;
+    thread->return_status = 0;
+    logger_thread_print(thread->logger,"[watchdog] started");
     while (!thread->should_end){
         usleep(10000);
         time_t currentTime = time(NULL);
-        for(size_t i = 0; i < thread->number_of_threads; i++){
+        logger_thread_print(thread->logger,"[watchdog] checking threads");
+        for(unsigned int i = 0; i < thread->number_of_threads; i++){
             if(difftime(currentTime,(atomic_load_explicit(thread->threads_last_update[i], memory_order_seq_cst))) > thread->timeout_time){
-                returnStatus = (int) i + 1;
+                thread->return_status = (int) i + 1;
                 goto RET;
             }
         }
     }
 
 RET:
-    pthread_exit((void *) returnStatus);
+    logger_thread_print(thread->logger,"[watchdog] exited %d", thread->return_status);
+    pthread_exit(&thread->return_status);
 }
 
 void watchdog_thread_start(WatchdogThread* watchdog){
@@ -49,9 +50,9 @@ void watchdog_thread_start(WatchdogThread* watchdog){
 }
 
 int watchdog_thread_join(WatchdogThread* watchdog){
-    void* status = 0;
+    int* status = 0;
     pthread_join(watchdog->thread, (void**) &status);
-    return (int) (long long) status;
+    return (int) *status;
 }
 
 int watchdog_thread_stop(WatchdogThread* watchdog){
