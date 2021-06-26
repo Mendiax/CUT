@@ -68,3 +68,35 @@ static void ringbufferTest_pointer(void) {
 
     ring_buffer_destroy(qtest);
 }
+
+static void ringbufferTest_resize(void);
+
+static void ringbufferTest_resize(void){
+    char test[2];
+    RingBuffer* qtest = ring_buffer_create(sizeof(char) * 2, 2);
+    ring_buffer_push(qtest,"0");
+    ring_buffer_push(qtest,"1");
+    T_ASSERT_EQ(ring_buffer_push(qtest,"2"),-1);
+    T_ASSERT_EQ(qtest->current_index, (size_t)0);
+    T_ASSERT_EQ(qtest->current_queue_length, (size_t)2);
+
+    T_ASSERT_EQ(ring_buffer_resize(&qtest,1),-1);
+    T_ASSERT_EQ(ring_buffer_resize(&qtest,4),0);
+
+    T_ASSERT_EQ(ring_buffer_push(qtest,"2"),0);
+    T_ASSERT_EQ(ring_buffer_push(qtest,"3"),0);
+    T_ASSERT_EQ(ring_buffer_push(qtest,"4"),-1);
+
+    T_ASSERT_EQ(ring_buffer_pop(qtest,test),1);
+    T_ASSERT(!strcmp(test,"0"));
+    T_ASSERT_EQ(ring_buffer_pop(qtest,test),1);
+    T_ASSERT(!strcmp(test,"1"));
+    T_ASSERT_EQ(ring_buffer_pop(qtest,test),1);
+    T_ASSERT(!strcmp(test,"2"));
+    T_ASSERT_EQ(ring_buffer_pop(qtest,test),1);
+    T_ASSERT(!strcmp(test,"3"));
+
+    T_ASSERT_EQ(ring_buffer_pop(qtest,test),0);
+
+    ring_buffer_destroy(qtest);
+}

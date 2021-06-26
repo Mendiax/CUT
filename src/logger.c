@@ -20,7 +20,7 @@ void logger_thread_print(LoggerThread* logger, const char* format, ...) {
     if (ring_buffer_is_full(logger->buffer)) {
         pthread_cond_wait(&logger->can_update_buffer, &logger->mutex_buffer);
     }
-    ring_buffer_push(logger->buffer, msg);
+    ring_buffer_push_resize(logger->buffer, msg,1.5f);
     pthread_cond_signal(&logger->can_read_buffer);
     pthread_mutex_unlock(&logger->mutex_buffer);
 }

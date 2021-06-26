@@ -49,6 +49,18 @@ int ring_buffer_push(RingBuffer* ring_buffer, const char* element);
 char* ring_buffer_push_pointer(RingBuffer* ring_buffer);
 
 /*
+ * resize buffer with keeping current elements
+ * only works if new size is greater than current
+ * returns 0 if success -1 on failure
+ */
+int ring_buffer_resize(RingBuffer** ring_buffer_ptr, size_t new_max_size);
+
+/*
+ * works like ring_buffer_push but when buffer is empty resize it by given factor
+ */
+int ring_buffer_push_resize(RingBuffer* ring_buffer, const char* element, float resize_factor);
+
+/*
  * initializing queue with elements of given size and given length
  * size_of_element - size of elements in bytes
  * buffer_length - max buffer length
