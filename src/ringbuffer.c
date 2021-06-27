@@ -85,20 +85,14 @@ int ring_buffer_resize(RingBuffer** ring_buffer_ptr, size_t new_max_size) {
     return 0;
 }
 
-int ring_buffer_push_resize(RingBuffer* ring_buffer, const char* element, float resize_factor) {
-    if (ring_buffer_is_full(ring_buffer)) {
-        int fail = ring_buffer_resize(&ring_buffer,(size_t)ring_buffer->max_queue_length * resize_factor);
+int ring_buffer_push_resize(RingBuffer** ring_buffer, const char* element, float resize_factor) {
+    if (ring_buffer_is_full(*ring_buffer)) {
+        int fail = ring_buffer_resize(ring_buffer,(size_t)((float)(*ring_buffer)->max_queue_length * resize_factor));
         if(fail){
             return -1;
         }
     }
-    if (!ring_buffer->current_queue_length) {
-        memcpy(ring_buffer_get_element_pointer(ring_buffer, ring_buffer->current_index), element, ring_buffer->size_of_element);
-    } else {
-        size_t nextFree = (ring_buffer->current_index + ring_buffer->current_queue_length) % ring_buffer->max_queue_length;
-        memcpy(ring_buffer_get_element_pointer(ring_buffer, nextFree), element, ring_buffer->size_of_element);
-    }
-    ring_buffer->current_queue_length++;
+    ring_buffer_push(*ring_buffer,element);
     return 0;
 }
 

@@ -13,14 +13,13 @@ void logger_thread_print(LoggerThread* logger, const char* format, ...) {
     char msg[logger->max_msg_length];
     va_list argptr;
     va_start(argptr, format);
-    snprintf(msg,logger->max_msg_length,format,argptr);
+    vsnprintf(msg, logger->max_msg_length, format, argptr);
     va_end(argptr);
 
     pthread_mutex_lock(&logger->mutex_buffer);
-    if (ring_buffer_is_full(logger->buffer)) {
+    if (ring_buffer_push_resize(&logger->buffer, msg,1.5f) == -1) {
         pthread_cond_wait(&logger->can_update_buffer, &logger->mutex_buffer);
     }
-    ring_buffer_push_resize(logger->buffer, msg,1.5f);
     pthread_cond_signal(&logger->can_read_buffer);
     pthread_mutex_unlock(&logger->mutex_buffer);
 }
