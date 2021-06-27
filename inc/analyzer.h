@@ -63,7 +63,7 @@ int analyzer_data_unpack(RawCpuData* buffer_array, char* data, unsigned int thre
  * reads data from buffer and calculate cpu usage
  * returns cpu usage from 0 to 1
  */
-float analyzer_get_cpu_usage(RawCpuData current_data, RawCpuData prev_data);
+float analyzer_get_cpu_usage( const RawCpuData* restrict current_data,const RawCpuData* restrict prev_data);
 
 /*
  * analyzer thread function

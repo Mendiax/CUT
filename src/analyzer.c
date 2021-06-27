@@ -35,9 +35,9 @@ int analyzer_data_unpack(RawCpuData* buffer_array, char* data, unsigned int thre
     return 1;
 }
 
-float analyzer_get_cpu_usage(RawCpuData current_data, RawCpuData prev_data) {
-    unsigned long long int total = current_data.total - prev_data.total;
-    unsigned long long int idle = current_data.idle - prev_data.idle;
+float analyzer_get_cpu_usage( const RawCpuData* restrict current_data,const RawCpuData* restrict prev_data) {
+    unsigned long long int total = current_data->total - prev_data->total;
+    unsigned long long int idle = current_data->idle - prev_data->idle;
 
     float cpu_percentage = (float) (total - idle) / (float) total;
     return cpu_percentage;
@@ -125,7 +125,7 @@ void* analyzer_thread_function(void* args) {
             if (memcmp(&thread->analyzer_data->raw_cpu_array[i], &thread->analyzer_data->raw_cpu_array2[i], sizeof(RawCpuData)) == 0) { //check id cpu did some work
                 continue;
             }
-            cpu_usage_buffer[i] = analyzer_get_cpu_usage(thread->analyzer_data->raw_cpu_array[i], thread->analyzer_data->raw_cpu_array2[i]);
+            cpu_usage_buffer[i] = analyzer_get_cpu_usage(&thread->analyzer_data->raw_cpu_array[i], &thread->analyzer_data->raw_cpu_array2[i]);
         }
 
         RawCpuData* tmp = thread->analyzer_data->raw_cpu_array;
