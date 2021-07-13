@@ -1,6 +1,10 @@
 #Ide
 .idea
 pdfs
+
+#log file
+log.txt
+
 #External libs
 external/*
 # Prerequisites
