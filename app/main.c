@@ -34,6 +34,8 @@ static void destroy_all() {
 __attribute__((noreturn)) static void int_handler() {
     stop_all();
     destroy_all();
+    printf("\nStopping program\n");
+    sleep(1);
     exit(EXIT_SUCCESS);
 }
 
@@ -61,4 +63,3 @@ int main(void) {
 
     return EXIT_FAILURE;
 }
-
