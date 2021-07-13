@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <assert.h>
 #include <stdatomic.h>
 
 WatchdogThread* watchdog_thread_create(LoggerThread* logger,double timeout, unsigned int thread_count, ...) {
@@ -52,7 +53,9 @@ void watchdog_thread_start(WatchdogThread* watchdog){
 int watchdog_thread_join(WatchdogThread* watchdog){
     int* status = 0;
     pthread_join(watchdog->thread, (void**) &status);
-    return (int) *status;
+    //assert(status != 0);
+    //printf("stat %d\n", (int) *status);
+    return (int) watchdog->return_status;
 }
 
 int watchdog_thread_stop(WatchdogThread* watchdog){
